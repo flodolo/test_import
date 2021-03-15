@@ -1,0 +1,30 @@
+name: Import strings
+on:
+  workflow_dispatch:
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get current date and set up git configuration
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      - name: Clone main repository
+        uses: actions/checkout@v2
+        with:
+          path: "main_repo"
+      - name: Clone l10n repository
+        uses: actions/checkout@v2
+        with:
+          repository: "mozilla-l10n/mozilla-vpn-website-l10n"
+          path: "l10n_repo"
+      - name: Copy files
+        run: python main_repo/.github/scripts/copy_l10n.py main_repo l10n_repo
+      - name: Set up Git configuration
+        run : git config --global user.email 'flodolo@users.noreply.github.com'
+      - uses: peter-evans/create-pull-request@v3
+        with:
+          path: "main_repo"
+          commit-message: "Import translations (${{ steps.date.outputs.date }})"
+          branch: l10n_automation
+          delete-branch: true
+          title: "Import translations (${{ steps.date.outputs.date }})"
